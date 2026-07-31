@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# Build & Push des Docker-Images in die GitHub Container Registry (GHCR).
+# Läuft nur auf "main" (nach erfolgreichem Merge) und bei Version-Tags.
+# Das ist der "Continuous Delivery"-Teil: fertige Artefakte automatisch bauen.
+# ---------------------------------------------------------------------------
+name: Docker
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+# Berechtigung, ins GHCR zu schreiben (nutzt das automatische GITHUB_TOKEN).
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Docker Buildx einrichten
+        uses: docker/setup-buildx-action@v3
+
+      - name: An GHCR anmelden
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadaten & Tags ableiten
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha
+
+      - name: Image bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

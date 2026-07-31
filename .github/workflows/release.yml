@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# Erstellt automatisch ein GitHub-Release, sobald ein Tag "vX.Y.Z" gepusht wird.
+# Übungsablauf:  git tag v0.1.0 && git push origin v0.1.0
+# ---------------------------------------------------------------------------
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # nötig, um ein Release anzulegen
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken (volle Historie für Changelog)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Änderungen seit dem letzten Tag sammeln
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "Vorheriger Tag: ${PREV_TAG:-<keiner>}"
+          if [ -z "$PREV_TAG" ]; then
+            LOG=$(git log --pretty=format:"- %s (%h)")
+          else
+            LOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)")
+          fi
+          # Mehrzeiligen Output korrekt an GitHub übergeben
+          {
+            echo "notes<<CHANGELOG_EOF"
+            echo "## Änderungen"
+            echo "$LOG"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: GitHub-Release anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.notes }}
+          generate_release_notes: false

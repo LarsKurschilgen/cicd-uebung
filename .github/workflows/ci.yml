@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------
+# CI-Pipeline: Linting, Typprüfung, Tests & Coverage.
+# Läuft bei jedem Push und bei jedem Pull Request.
+# Das ist das Herzstück von "Continuous Integration".
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint, Typen & Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    # Matrix-Build: dieselben Checks laufen parallel auf mehreren Python-Versionen.
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip   # pip-Cache beschleunigt wiederholte Läufe
+
+      - name: Abhängigkeiten installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff (Linting)
+        run: ruff check .
+
+      - name: Black (Formatprüfung)
+        run: black --check .
+
+      - name: mypy (statische Typen)
+        run: mypy app
+
+      - name: Tests mit Coverage
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Coverage-Report als Artefakt hochladen
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
