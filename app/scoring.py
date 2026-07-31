@@ -44,7 +44,7 @@ def urgency_score(task: Task, today: date | None = None) -> float:
     if task.status == Status.DONE:
         return 0.0
 
-    base = PRIORITY_WEIGHTS[task.priority] * 5  # 5..50
+    base = PRIORITY_WEIGHTS[task.priority] * 50  # 5..50
 
     remaining = days_until_due(task.due_date, today)
     if remaining is None:
