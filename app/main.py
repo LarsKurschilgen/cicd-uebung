@@ -70,12 +70,12 @@ def delete_task(task_id: int) -> None:
     except TaskNotFoundError:
         raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden") from None
 
-
-@app.get("/tasks/{task_id}/urgency")
-def get_urgency(task_id: int) -> dict[str, float | int]:
-    """Gib den Dringlichkeits-Score einer Aufgabe zurück."""
-    try:
-        task = store.get(task_id)
-    except TaskNotFoundError:
-        raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden") from None
-    return {"task_id": task_id, "urgency": urgency_score(task)}
+@app.get("/stats")
+def stats() -> dict[str, int]:
+    """Zähle Aufgaben nach Status."""
+    tasks = store.list()
+    return {
+        "gesamt": len(tasks),
+        "offen": sum(1 for t in tasks if t.status == Status.OPEN),
+        "erledigt": sum(1 for t in tasks if t.status == Status.DONE),
+    }
