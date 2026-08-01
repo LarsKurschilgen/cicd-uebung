@@ -15,8 +15,13 @@ GEWICHTE = {
     "vertragsalter": -0.15,
     "umsatz_risiko": 0.30,
     "ticket_last": 0.20,
+<<<<<<< HEAD
+    "inaktivitaet": 0.15,
+    "nutzungs_intensitaet": -0.20,
+=======
     "inaktivitaet": 0.20,
     "zahlungs_risiko": 0.15,
+>>>>>>> main
 }
 
 
@@ -41,6 +46,15 @@ def inaktivitaet(kunde):
     return min(kunde["letzte_nutzung_tage"] / 60.0, 1.0)
 
 
+<<<<<<< HEAD
+def nutzungs_intensitaet(kunde):
+    """Logins der letzten 30 Tage. Kappung bei 40 Logins.
+
+    Wer den Dienst taeglich nutzt, kuendigt praktisch nie. Das Feature
+    wirkt deshalb mit negativem Gewicht.
+    """
+    return min(kunde["logins_30d"] / 40.0, 1.0)
+=======
 def zahlungs_risiko(kunde):
     """Zahlungsverzug in Tagen. Kappung bei 30 Tagen.
 
@@ -48,6 +62,7 @@ def zahlungs_risiko(kunde):
     das Feature ist deshalb ein starker Fruehindikator.
     """
     return min(kunde["zahlungsverzug_tage"] / 30.0, 1.0)
+>>>>>>> main
 
 
 # --- Zusammenbau -------------------------------------------------------
@@ -58,7 +73,11 @@ def build_features(kunde):
         "umsatz_risiko": umsatz_risiko(kunde),
         "ticket_last": ticket_last(kunde),
         "inaktivitaet": inaktivitaet(kunde),
+<<<<<<< HEAD
+        "nutzungs_intensitaet": nutzungs_intensitaet(kunde),
+=======
         "zahlungs_risiko": zahlungs_risiko(kunde),
+>>>>>>> main
     }
 
 
