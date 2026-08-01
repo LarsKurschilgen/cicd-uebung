@@ -12,10 +12,11 @@ Genau das prüft tests/test_features.py.
 # Negativ = wirkt schützend (senkt das Churn-Risiko)
 # Positiv = wirkt treibend (erhöht das Churn-Risiko)
 GEWICHTE = {
-    "vertragsalter": -0.20,
-    "umsatz_risiko": 0.35,
-    "ticket_last": 0.25,
+    "vertragsalter": -0.15,
+    "umsatz_risiko": 0.30,
+    "ticket_last": 0.20,
     "inaktivitaet": 0.20,
+    "zahlungs_risiko": 0.15,
 }
 
 
@@ -40,6 +41,15 @@ def inaktivitaet(kunde):
     return min(kunde["letzte_nutzung_tage"] / 60.0, 1.0)
 
 
+def zahlungs_risiko(kunde):
+    """Zahlungsverzug in Tagen. Kappung bei 30 Tagen.
+
+    Mahnlauf und Kuendigung liegen erfahrungsgemaess dicht beieinander,
+    das Feature ist deshalb ein starker Fruehindikator.
+    """
+    return min(kunde["zahlungsverzug_tage"] / 30.0, 1.0)
+
+
 # --- Zusammenbau -------------------------------------------------------
 def build_features(kunde):
     """Baut den Feature-Vektor für einen Kunden."""
@@ -48,6 +58,7 @@ def build_features(kunde):
         "umsatz_risiko": umsatz_risiko(kunde),
         "ticket_last": ticket_last(kunde),
         "inaktivitaet": inaktivitaet(kunde),
+        "zahlungs_risiko": zahlungs_risiko(kunde),
     }
 
 
