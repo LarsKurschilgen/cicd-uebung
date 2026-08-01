@@ -15,8 +15,9 @@ GEWICHTE = {
     "vertragsalter": -0.15,
     "umsatz_risiko": 0.30,
     "ticket_last": 0.20,
-    "inaktivitaet": 0.15,
     "nutzungs_intensitaet": -0.20,
+    "inaktivitaet": 0.20,
+    "zahlungs_risiko": 0.15,
 }
 
 
@@ -48,6 +49,13 @@ def nutzungs_intensitaet(kunde):
     wirkt deshalb mit negativem Gewicht.
     """
     return min(kunde["logins_30d"] / 40.0, 1.0)
+def zahlungs_risiko(kunde):
+    """Zahlungsverzug in Tagen. Kappung bei 30 Tagen.
+
+    Mahnlauf und Kuendigung liegen erfahrungsgemaess dicht beieinander,
+    das Feature ist deshalb ein starker Fruehindikator.
+    """
+    return min(kunde["zahlungsverzug_tage"] / 30.0, 1.0)
 
 
 # --- Zusammenbau -------------------------------------------------------
@@ -59,6 +67,7 @@ def build_features(kunde):
         "ticket_last": ticket_last(kunde),
         "inaktivitaet": inaktivitaet(kunde),
         "nutzungs_intensitaet": nutzungs_intensitaet(kunde),
+        "zahlungs_risiko": zahlungs_risiko(kunde),
     }
 
 
