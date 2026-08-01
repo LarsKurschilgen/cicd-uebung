@@ -12,10 +12,11 @@ Genau das prüft tests/test_features.py.
 # Negativ = wirkt schützend (senkt das Churn-Risiko)
 # Positiv = wirkt treibend (erhöht das Churn-Risiko)
 GEWICHTE = {
-    "vertragsalter": -0.20,
-    "umsatz_risiko": 0.35,
-    "ticket_last": 0.25,
-    "inaktivitaet": 0.20,
+    "vertragsalter": -0.15,
+    "umsatz_risiko": 0.30,
+    "ticket_last": 0.20,
+    "inaktivitaet": 0.15,
+    "nutzungs_intensitaet": -0.20,
 }
 
 
@@ -40,6 +41,15 @@ def inaktivitaet(kunde):
     return min(kunde["letzte_nutzung_tage"] / 60.0, 1.0)
 
 
+def nutzungs_intensitaet(kunde):
+    """Logins der letzten 30 Tage. Kappung bei 40 Logins.
+
+    Wer den Dienst taeglich nutzt, kuendigt praktisch nie. Das Feature
+    wirkt deshalb mit negativem Gewicht.
+    """
+    return min(kunde["logins_30d"] / 40.0, 1.0)
+
+
 # --- Zusammenbau -------------------------------------------------------
 def build_features(kunde):
     """Baut den Feature-Vektor für einen Kunden."""
@@ -48,6 +58,7 @@ def build_features(kunde):
         "umsatz_risiko": umsatz_risiko(kunde),
         "ticket_last": ticket_last(kunde),
         "inaktivitaet": inaktivitaet(kunde),
+        "nutzungs_intensitaet": nutzungs_intensitaet(kunde),
     }
 
 
